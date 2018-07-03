@@ -17,12 +17,10 @@
 
 ![](img/bucket_setting.png)
 
-如上图，`上传文件路径前缀`和`保存下载链接文件`支持环境变量配置。
-`生成下载路径前缀`注意后面需要添加`/`，以便生成完整下载链接。
 
 ### 已经编译文件下载
 
-[qinniu-file.hpi](https://github.com/onloadcc/qiniu-file/blob/master/qinniu-file.hpi?raw=true)
+[qinniu-file.hpi](https://github.com/YahuiWong/publish-over-qiniu-plugin/blob/master/qinniu-file.hpi?raw=true)
 
 ### 手动编译
 ```
@@ -30,6 +28,8 @@ mvn package -DskipTests
 ```
 
 
-> 项目参考[七牛云上传插件](https://github.com/ipy/qiniu-plugin)，并增加新功能。
+>  项目参考 
+> 1. [七牛云上传插件](https://github.com/ipy/qiniu-plugin)，并增加新功能。
+> 2. [七牛云上传插件](https://github.com/onloadcc/qiniu-file),将文件发布修改为文件夹发布
 
 

@@ -73,19 +73,19 @@ public class QiniuPublisher extends Recorder {
                 continue;
             }
 
-            //清除上次的文件内容
-            String urlsFile = Util.replaceMacro(entry.urlsFile, envVars);
-            if (!StringUtils.isNullOrEmpty(urlsFile)) {
-                logger.println("写入下载链接文件地址 " + urlsFile);
-                File file = new File(urlsFile);
-                String absolutePath = file.getAbsolutePath();
-                logger.println("path " + absolutePath);
-                if (file.exists()) file.delete();
-            }
+//            //清除上次的文件内容
+//            String urlsFile = Util.replaceMacro(entry.urlsFile, envVars);
+//            if (!StringUtils.isNullOrEmpty(urlsFile)) {
+//                logger.println("写入下载链接文件地址 " + urlsFile);
+//                File file = new File(urlsFile);
+//                String absolutePath = file.getAbsolutePath();
+//                logger.println("path " + absolutePath);
+//                if (file.exists()) file.delete();
+//            }
 
             //上传文件路径前缀
             //变量替换、
-            String prefix = Util.replaceMacro(entry.prefix, envVars);
+            String removePrefix = Util.replaceMacro(entry.removePrefix, envVars);
 
             //密钥配置
             Auth auth = Auth.create(profile.getAccessKey(), profile.getSecretKey());
@@ -104,11 +104,12 @@ public class QiniuPublisher extends Recorder {
 //                String keyPath = path.getRemote().replace(wsPath, "");
 //                String key = keyPath.replace(File.separator, "/");
                 String name = path.getName();
+                name=fullPath.replace(wsPath,"");
+                if (!StringUtils.isNullOrEmpty(removePrefix)&& fullPath.contains(removePrefix)) {
+                    name = fullPath.substring(fullPath.indexOf(removePrefix)+removePrefix.length(),fullPath.length());
 
-                if (!StringUtils.isNullOrEmpty(prefix)) {
-                    name = prefix + name;
                 }
-
+                logger.println("key:" + name);
                 try {
                     int insertOnley = entry.noUploadOnExists ? 1 : 0;
                     //上传策略。同名文件不允许再次上传。 文件相同，名字相同，返回上传成功。文件不同，名字相同，返回上传失败提示文件已存在。
@@ -132,23 +133,23 @@ public class QiniuPublisher extends Recorder {
 
                     logger.println("上传 " + fullPath + " 到 " + entry.bucket + " 成功." + bodyString);
 
-                    //生成下载链接
-                    String netUrl = entry.netUrl;
-                    netUrl = netUrl + keyString;
-
-                    logger.println("下载链接　" + netUrl);
-
-                    try {
-                        if (!StringUtils.isNullOrEmpty(urlsFile)) {
-                            File urlsFile1 = new File(urlsFile);
-                            FileUtils.createOrExistsFile(urlsFile1);
-
-                            netUrl += "\n";
-                            FileUtils.writeFileFromString(urlsFile1, netUrl, true);
-                        }
-                    } catch (Exception e) {
-                        logger.println("写入链接文件失败！ " + e.getMessage());
-                    }
+//                    //生成下载链接
+//                    String netUrl = entry.netUrl;
+//                    netUrl = netUrl + keyString;
+//
+//                    logger.println("下载链接　" + netUrl);
+//
+//                    try {
+//                        if (!StringUtils.isNullOrEmpty(urlsFile)) {
+//                            File urlsFile1 = new File(urlsFile);
+//                            FileUtils.createOrExistsFile(urlsFile1);
+//
+//                            netUrl += "\n";
+//                            FileUtils.writeFileFromString(urlsFile1, netUrl, true);
+//                        }
+//                    } catch (Exception e) {
+//                        logger.println("写入链接文件失败！ " + e.getMessage());
+//                    }
 
                 } catch (QiniuException e) {
                     try {

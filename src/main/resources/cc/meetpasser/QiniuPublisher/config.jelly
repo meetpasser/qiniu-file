@@ -18,10 +18,10 @@
         <f:textbox name="qiniu.bucket" value="${e.bucket}" />
       </f:entry>
 
-      <f:entry title="上传文件路径前缀" field="prefix">
-        <f:textbox name="qiniu.prefix" value="${e.prefix}" />
+      <f:entry title="移除前缀" field="removePrefix">
+        <f:textbox name="qiniu.removePrefix" value="${e.removePrefix}" />
       </f:entry>
-
+   <!--
       <f:entry title="生成下载路径前缀" field="netUrl">
         <f:textbox name="qiniu.netUrl" value="${e.netUrl}"/>
       </f:entry>
@@ -29,7 +29,7 @@
     <f:entry title="保存下载链接文件" field="urlsFile">
         <f:textbox name="qiniu.urlsFile" value="${e.urlsFile}"/>
     </f:entry>
-      <!--
+
       <f:entry title="重命名">
 	    <f:textbox name="qiniu.formatKey" value="${e.formatKey}"/>
       </f:entry>
