@@ -1,7 +1,6 @@
 package cc.meetpasser;
 
 import com.google.gson.Gson;
-import com.qiniu.common.QiniuException;
 import com.qiniu.common.Zone;
 import com.qiniu.http.Response;
 import com.qiniu.storage.Configuration;
@@ -53,13 +52,26 @@ public class QiniuPublisher extends Recorder {
         // This also shows how you can consult the global configuration of the
         // builder
         FilePath ws = build.getWorkspace();
-        String wsPath = ws.getRemote() + File.separator;
+//        String wsPath = ws.getRemote() + File.separator;
         PrintStream logger = listener.getLogger();
         Map<String, String> envVars = build.getEnvironment(listener);
         final boolean buildFailed = build.getResult() == Result.FAILURE;
 
         logger.println("开始上传到七牛...");
         for (QiniuEntry entry : this.entries) {
+            //对可输入内容字段进行变量替换
+            entry.source = Util.replaceMacro(entry.source, envVars);
+            entry.bucket = Util.replaceMacro(entry.bucket, envVars);
+            entry.prefix = Util.replaceMacro(entry.prefix, envVars);
+            entry.netUrl = Util.replaceMacro(entry.netUrl, envVars);
+            entry.urlsFile = Util.replaceMacro(entry.urlsFile, envVars);
+
+            logger.println("七牛参数生成：");
+            logger.println("文件夹路径：" + entry.source);
+            logger.println("要上传到的 bucket：" + entry.bucket);
+            logger.println("上传文件路径前缀：" + entry.prefix);
+            logger.println("生成下载路径前缀：" + entry.netUrl);
+            logger.println("保存下载链接文件：" + entry.urlsFile);
 
             if (entry.noUploadOnFailure && buildFailed) {
                 logger.println("构建失败,跳过上传");
@@ -74,18 +86,12 @@ public class QiniuPublisher extends Recorder {
             }
 
             //清除上次的文件内容
-            String urlsFile = Util.replaceMacro(entry.urlsFile, envVars);
+            String urlsFile = entry.urlsFile;
             if (!StringUtils.isNullOrEmpty(urlsFile)) {
                 logger.println("写入下载链接文件地址 " + urlsFile);
                 File file = new File(urlsFile);
-                String absolutePath = file.getAbsolutePath();
-                logger.println("path " + absolutePath);
-                if (file.exists()) file.delete();
+                file.deleteOnExit();
             }
-
-            //上传文件路径前缀
-            //变量替换、
-            String prefix = Util.replaceMacro(entry.prefix, envVars);
 
             //密钥配置
             Auth auth = Auth.create(profile.getAccessKey(), profile.getSecretKey());
@@ -97,16 +103,15 @@ public class QiniuPublisher extends Recorder {
             //创建上传对象
             UploadManager uploadManager = new UploadManager(c);
 
-            String expanded = Util.replaceMacro(entry.source, envVars);
-            FilePath[] paths = ws.list(expanded);
+            FilePath[] paths = ws.list(entry.source);
             for (FilePath path : paths) {
                 String fullPath = path.getRemote();
 //                String keyPath = path.getRemote().replace(wsPath, "");
 //                String key = keyPath.replace(File.separator, "/");
                 String name = path.getName();
 
-                if (!StringUtils.isNullOrEmpty(prefix)) {
-                    name = prefix + name;
+                if (!StringUtils.isNullOrEmpty(entry.prefix)) {
+                    name = entry.prefix + name;
                 }
 
                 try {
@@ -150,14 +155,9 @@ public class QiniuPublisher extends Recorder {
                         logger.println("写入链接文件失败！ " + e.getMessage());
                     }
 
-                } catch (QiniuException e) {
-                    try {
-                        logger.println("上传 " + fullPath + " 到 " + entry.bucket + " 失败 ");
-                        logger.println(e.error());
-                    } catch (Exception e1) {
-                        //ignore
-                        logger.print(e1);
-                    }
+                } catch (Exception e) {
+                    logger.println("上传 " + fullPath + " 到 " + entry.bucket + " 失败 ");
+                    logger.println(e);
                     build.setResult(Result.UNSTABLE);
                 }
 

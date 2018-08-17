@@ -10,7 +10,7 @@
        </select>
       </f:entry>
 
-      <f:entry title="文件路径" field="qiniusource">
+      <f:entry title="文件夹路径" field="qiniusource">
         <f:textbox name="qiniu.source" value="${e.source}" />
       </f:entry>
 
@@ -19,14 +19,14 @@
       </f:entry>
 
       <f:entry title="上传文件路径前缀" field="prefix">
-        <f:textbox name="qiniu.prefix" value="${e.prefix}" />
+        <f:textbox name="qiniu.prefix" value="${e.prefix}"/>
       </f:entry>
 
-      <f:entry title="生成下载路径前缀" field="netUrl">
+      <f:entry title="生成下载路径前缀" field="netUrl" description="可设置外链域名">
         <f:textbox name="qiniu.netUrl" value="${e.netUrl}"/>
       </f:entry>
 
-    <f:entry title="保存下载链接文件" field="urlsFile">
+    <f:entry title="保存下载链接文件" field="urlsFile" description="保存生成的七牛下载地址文件路径">
         <f:textbox name="qiniu.urlsFile" value="${e.urlsFile}"/>
     </f:entry>
       <!--
