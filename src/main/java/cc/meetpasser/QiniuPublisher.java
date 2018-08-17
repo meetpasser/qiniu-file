@@ -90,7 +90,7 @@ public class QiniuPublisher extends Recorder {
             if (!StringUtils.isNullOrEmpty(urlsFile)) {
                 logger.println("写入下载链接文件地址 " + urlsFile);
                 File file = new File(urlsFile);
-                file.deleteOnExit();
+                if (file.exists()) file.delete();
             }
 
             //密钥配置
