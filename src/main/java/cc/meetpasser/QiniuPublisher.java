@@ -60,18 +60,18 @@ public class QiniuPublisher extends Recorder {
         logger.println("开始上传到七牛...");
         for (QiniuEntry entry : this.entries) {
             //对可输入内容字段进行变量替换
-            entry.source = Util.replaceMacro(entry.source, envVars);
-            entry.bucket = Util.replaceMacro(entry.bucket, envVars);
-            entry.prefix = Util.replaceMacro(entry.prefix, envVars);
-            entry.netUrl = Util.replaceMacro(entry.netUrl, envVars);
-            entry.urlsFile = Util.replaceMacro(entry.urlsFile, envVars);
+            String source = Util.replaceMacro(entry.source, envVars);
+            String bucket = Util.replaceMacro(entry.bucket, envVars);
+            String prefix = Util.replaceMacro(entry.prefix, envVars);
+            String netUrl = Util.replaceMacro(entry.netUrl, envVars);
+            String urlsFile = Util.replaceMacro(entry.urlsFile, envVars);
 
             logger.println("七牛参数生成：");
-            logger.println("文件夹路径：" + entry.source);
-            logger.println("要上传到的 bucket：" + entry.bucket);
-            logger.println("上传文件路径前缀：" + entry.prefix);
-            logger.println("生成下载路径前缀：" + entry.netUrl);
-            logger.println("保存下载链接文件：" + entry.urlsFile);
+            logger.println("文件夹路径：" + source);
+            logger.println("要上传到的 bucket：" + bucket);
+            logger.println("上传文件路径前缀：" + prefix);
+            logger.println("生成下载路径前缀：" + netUrl);
+            logger.println("保存下载链接文件：" + urlsFile);
 
             if (entry.noUploadOnFailure && buildFailed) {
                 logger.println("构建失败,跳过上传");
@@ -86,7 +86,6 @@ public class QiniuPublisher extends Recorder {
             }
 
             //清除上次的文件内容
-            String urlsFile = entry.urlsFile;
             if (!StringUtils.isNullOrEmpty(urlsFile)) {
                 logger.println("写入下载链接文件地址 " + urlsFile);
                 File file = new File(urlsFile);
@@ -103,15 +102,15 @@ public class QiniuPublisher extends Recorder {
             //创建上传对象
             UploadManager uploadManager = new UploadManager(c);
 
-            FilePath[] paths = ws.list(entry.source);
+            FilePath[] paths = ws.list(source);
             for (FilePath path : paths) {
                 String fullPath = path.getRemote();
 //                String keyPath = path.getRemote().replace(wsPath, "");
 //                String key = keyPath.replace(File.separator, "/");
                 String name = path.getName();
 
-                if (!StringUtils.isNullOrEmpty(entry.prefix)) {
-                    name = entry.prefix + name;
+                if (!StringUtils.isNullOrEmpty(prefix)) {
+                    name = prefix + name;
                 }
 
                 try {
@@ -121,7 +120,7 @@ public class QiniuPublisher extends Recorder {
                     putPolicy.put("insertOnly", insertOnley);
 
                     //简单上传，使用默认策略，只需要设置上传的空间名就可以了
-                    String uploadToken = auth.uploadToken(entry.bucket, name, 3600, putPolicy);
+                    String uploadToken = auth.uploadToken(bucket, name, 3600, putPolicy);
 
                     //调用put方法上传 文件路径，上传后保存文件名，token
                     Response res = uploadManager.put(fullPath, name, uploadToken);
@@ -131,14 +130,13 @@ public class QiniuPublisher extends Recorder {
 
                     //默认body返回hash和key值
                     DefaultPutRet defaultPutRet = new Gson().fromJson(bodyString, DefaultPutRet.class);
-                    String hashString = defaultPutRet.hash;
+//                    String hashString = defaultPutRet.hash;
                     //获得文件保存在空间中的资源名。
                     String keyString = defaultPutRet.key;
 
-                    logger.println("上传 " + fullPath + " 到 " + entry.bucket + " 成功." + bodyString);
+                    logger.println("上传 " + fullPath + " 到 " + bucket + " 成功." + bodyString);
 
                     //生成下载链接
-                    String netUrl = entry.netUrl;
                     netUrl = netUrl + keyString;
 
                     logger.println("下载链接　" + netUrl);
@@ -156,7 +154,7 @@ public class QiniuPublisher extends Recorder {
                     }
 
                 } catch (Exception e) {
-                    logger.println("上传 " + fullPath + " 到 " + entry.bucket + " 失败 ");
+                    logger.println("上传 " + fullPath + " 到 " + bucket + " 失败 ");
                     logger.println(e);
                     build.setResult(Result.UNSTABLE);
                 }
