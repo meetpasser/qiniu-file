@@ -137,17 +137,17 @@ public class QiniuPublisher extends Recorder {
                     logger.println("上传 " + fullPath + " 到 " + bucket + " 成功." + bodyString);
 
                     //生成下载链接
-                    netUrl = netUrl + keyString;
+                    String downloadUrl = netUrl + keyString;
 
-                    logger.println("下载链接　" + netUrl);
+                    logger.println("下载链接　" + downloadUrl);
 
                     try {
                         if (!StringUtils.isNullOrEmpty(urlsFile)) {
                             File urlsFile1 = new File(urlsFile);
                             FileUtils.createOrExistsFile(urlsFile1);
 
-                            netUrl += "\n";
-                            FileUtils.writeFileFromString(urlsFile1, netUrl, true);
+                            downloadUrl += "\n";
+                            FileUtils.writeFileFromString(urlsFile1, downloadUrl, true);
                         }
                     } catch (Exception e) {
                         logger.println("写入链接文件失败！ " + e.getMessage());

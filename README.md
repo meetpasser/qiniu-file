@@ -22,7 +22,7 @@
 
 ### 已经编译文件下载
 
-[qinniu-file.hpi](https://github.com/onloadcc/qiniu-file/blob/master/qinniu-file-1.3.hpi?raw=true)
+[qinniu-file.hpi](https://github.com/onloadcc/qiniu-file/blob/master/qinniu-file-1.4.hpi?raw=true)
 
 ### 手动编译
 ```
