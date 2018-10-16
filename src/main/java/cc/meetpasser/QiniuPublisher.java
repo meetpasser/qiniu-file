@@ -156,6 +156,7 @@ public class QiniuPublisher extends Recorder {
                 } catch (Exception e) {
                     logger.println("上传 " + fullPath + " 到 " + bucket + " 失败 ");
                     logger.println(e);
+                    e.printStackTrace();
                     build.setResult(Result.UNSTABLE);
                 }
 
