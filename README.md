@@ -29,6 +29,18 @@
 mvn package -DskipTests
 ```
 
+### 本地运行
+```
+mvn hpi:run
+```
+
+### Debug运行
+```
+mvnDebug hpi:run
+```
+在IDE中配置`Run/Debug Configuration`,
+`Add New Configuration`->`Remote`->`Port`改为`8000`。
+点击绿点运行。
 
 > 项目参考[七牛云上传插件](https://github.com/ipy/qiniu-plugin)，并增加新功能。
 

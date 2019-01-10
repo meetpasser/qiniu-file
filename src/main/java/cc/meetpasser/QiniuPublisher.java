@@ -55,10 +55,12 @@ public class QiniuPublisher extends Recorder {
 //        String wsPath = ws.getRemote() + File.separator;
         PrintStream logger = listener.getLogger();
         Map<String, String> envVars = build.getEnvironment(listener);
-        final boolean buildFailed = build.getResult() == Result.FAILURE;
+        final boolean buildFailed = build.getResult() != Result.SUCCESS;
+        if (buildFailed) logger.println("---任务构建失败---");
 
-        logger.println("开始上传到七牛...");
+        logger.println("开始读取七牛配置:");
         for (QiniuEntry entry : this.entries) {
+
             //对可输入内容字段进行变量替换
             String source = Util.replaceMacro(entry.source, envVars);
             String bucket = Util.replaceMacro(entry.bucket, envVars);
@@ -99,70 +101,62 @@ public class QiniuPublisher extends Recorder {
             Zone z = Zone.autoZone();
             Configuration c = new Configuration(z);
 
+            logger.println(entry.profileName + "---七牛任务开始上传---");
+
             //创建上传对象
             UploadManager uploadManager = new UploadManager(c);
 
             FilePath[] paths = ws.list(source);
             for (FilePath path : paths) {
+
+
                 String fullPath = path.getRemote();
-//                String keyPath = path.getRemote().replace(wsPath, "");
-//                String key = keyPath.replace(File.separator, "/");
+                logger.println("上传文件 " + fullPath + " 到 " + bucket + " 开始.");
                 String name = path.getName();
 
                 if (!StringUtils.isNullOrEmpty(prefix)) {
                     name = prefix + name;
                 }
 
-                try {
-                    int insertOnley = entry.noUploadOnExists ? 1 : 0;
-                    //上传策略。同名文件不允许再次上传。 文件相同，名字相同，返回上传成功。文件不同，名字相同，返回上传失败提示文件已存在。
-                    StringMap putPolicy = new StringMap();
-                    putPolicy.put("insertOnly", insertOnley);
+                int insertOnley = entry.noUploadOnExists ? 1 : 0;
+                //上传策略。同名文件不允许再次上传。 文件相同，名字相同，返回上传成功。文件不同，名字相同，返回上传失败提示文件已存在。
+                StringMap putPolicy = new StringMap();
+                putPolicy.put("insertOnly", insertOnley);
 
-                    //简单上传，使用默认策略，只需要设置上传的空间名就可以了
-                    String uploadToken = auth.uploadToken(bucket, name, 3600, putPolicy);
+                //简单上传，使用默认策略，只需要设置上传的空间名就可以了
+                String uploadToken = auth.uploadToken(bucket, name, 3600, putPolicy);
 
-                    //调用put方法上传 文件路径，上传后保存文件名，token
-                    Response res = uploadManager.put(fullPath, name, uploadToken);
+                //调用put方法上传 文件路径，上传后保存文件名，token
+                Response res = uploadManager.put(fullPath, name, uploadToken);
 
-                    //打印返回的信息
-                    String bodyString = res.bodyString();
+                //打印返回的信息
+                String bodyString = res.bodyString();
 
-                    //默认body返回hash和key值
-                    DefaultPutRet defaultPutRet = new Gson().fromJson(bodyString, DefaultPutRet.class);
+                //默认body返回hash和key值
+                DefaultPutRet defaultPutRet = new Gson().fromJson(bodyString, DefaultPutRet.class);
 //                    String hashString = defaultPutRet.hash;
-                    //获得文件保存在空间中的资源名。
-                    String keyString = defaultPutRet.key;
+                //获得文件保存在空间中的资源名。
+                String keyString = defaultPutRet.key;
 
-                    logger.println("上传 " + fullPath + " 到 " + bucket + " 成功." + bodyString);
+                logger.println("上传 " + fullPath + " 到 " + bucket + " 成功." + bodyString);
 
-                    //生成下载链接
-                    String downloadUrl = netUrl + keyString;
+                //生成下载链接
+                String downloadUrl = netUrl + keyString;
 
-                    logger.println("下载链接　" + downloadUrl);
+                logger.println("下载链接　" + downloadUrl);
 
-                    try {
-                        if (!StringUtils.isNullOrEmpty(urlsFile)) {
-                            File urlsFile1 = new File(urlsFile);
-                            FileUtils.createOrExistsFile(urlsFile1);
+                logger.println("写入下载链接文件:" + urlsFile);
+                if (!StringUtils.isNullOrEmpty(urlsFile)) {
+                    File urlsFile1 = new File(urlsFile);
+                    FileUtils.createOrExistsFile(urlsFile1);
 
-                            downloadUrl += "\n";
-                            FileUtils.writeFileFromString(urlsFile1, downloadUrl, true);
-                        }
-                    } catch (Exception e) {
-                        logger.println("写入链接文件失败！ " + e.getMessage());
-                    }
-
-                } catch (Exception e) {
-                    logger.println("上传 " + fullPath + " 到 " + bucket + " 失败 ");
-                    logger.println(e);
-                    e.printStackTrace();
-                    build.setResult(Result.UNSTABLE);
+                    downloadUrl += "\n";
+                    FileUtils.writeFileFromString(urlsFile1, downloadUrl, true);
                 }
-
             }
+            logger.println(entry.profileName + "---七牛任务上传完成---");
         }
-        logger.println("上传到七牛成功...");
+        logger.println("七牛云任务执行完成...");
         return true;
     }
 
